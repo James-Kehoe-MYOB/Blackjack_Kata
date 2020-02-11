@@ -63,6 +63,7 @@ namespace Blackjack {
                 }
         
         public static void DisplayStatus(Player player) {
+            Console.Write("\n");
             //print individual cards
             if (CheckBust(player)) {
                 if (player.getName() == "player") {
@@ -83,7 +84,7 @@ namespace Blackjack {
             for (int i = 0; i < player.getCards().Count; i++) {
                 Console.Write("[{0}, {1}]", player.getCards()[i].getName(),  player.getCards()[i].getSuit());
             }
-            Console.WriteLine("\n");
+            Console.Write("\n");
         }
 
         public static void HitorStay(Player player) {
@@ -98,7 +99,7 @@ namespace Blackjack {
                 DisplayStatus(player);
             } else if (response.Equals("stay", StringComparison.CurrentCultureIgnoreCase) || response.Equals("0")) {
                 currentPlayer = false;
-                Console.WriteLine("it is now the dealer's turn.");
+                Console.WriteLine("\nit is now the dealer's turn.\n");
             } else {
                 Console.WriteLine("Please input a valid answer.");
                 HitorStay(player);
@@ -114,31 +115,42 @@ namespace Blackjack {
             }
         }
 
-        public static void ResolveAce(Player player) {
-            int total = player.getTotal();
+        public static int CalculateTotal(Player player) {
+            int total = 0;
+            int count = 0;
+            
             for (int i = 0; i < player.getCards().Count; i++) {
-                if (player.getCards()[i].getName().Equals("Ace")) {
-                    if ((total - 11) < 11) {
-                        player.getCards()[i].setPoints(11);
-                    }
-                    else {
-                        player.getCards()[i].setPoints(1);
+                if (player.getCards()[i].getName() != "Ace") {
+                    total = total + player.getCards()[i].getPoints();
+                }
+                else {
+                    count++;
+                }
+            }
+
+            if (count > 0) {
+                for (int i = 0; i < player.getCards().Count; i++) {
+                    if (player.getCards()[i].getName() == "Ace") {
+                        if (total < 10) {
+                            total = total + 11;
+                        }
+                        else {
+                            total = total + 1;
+                        }
                     }
                 }
             }
+            return total;
         }
 
         public static void dealCard(Player player) {
             int card_id = random.Next(0, deck.Count);
             player.cardAdd(deck[card_id]);
             deck.Remove(deck[card_id]);
-            ResolveAce(player);
-            player.setTotal();
-
+            player.setTotal(CalculateTotal(player));
         }
 
         public static void DealersTurn(Player dealer) {
-
             dealCard(dealer);
             dealCard(dealer);
             DisplayStatus(dealer);
@@ -153,7 +165,12 @@ namespace Blackjack {
         }
 
         public static void CheckWin(Player player, Player dealer) {
-            if (player.getTotal().CompareTo(dealer.getTotal()) < 0) {
+            if (player.getTotal() > 21) {
+                Console.WriteLine("Dealer Wins!");
+            } else if (dealer.getTotal() > 21) {
+                Console.WriteLine("You Win!");
+            }
+            else if (player.getTotal().CompareTo(dealer.getTotal()) < 0) {
                 Console.WriteLine("Dealer Wins!");
             }
             else if (player.getTotal().CompareTo(dealer.getTotal()) > 0) {
@@ -177,11 +194,8 @@ namespace Blackjack {
                 this.name = name;
             }
 
-            public void setTotal() {
-                total = 0;
-                for (int i = 0; i < cards.Count; i++) {
-                    total = total + cards[i].getPoints();
-                }
+            public void setTotal(int total) {
+                this.total = total;
             }
 
             public int getTotal() {
@@ -199,10 +213,6 @@ namespace Blackjack {
             public string getName() {
                 return name;
             }
-
-            /*public int calc_value(List<Card> cards) {
-                
-            }*/
 
         }
         

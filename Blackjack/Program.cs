@@ -10,11 +10,8 @@ namespace Blackjack {
             Clubs,
             Spades
         }
-        
         public static bool currentPlayer = true;
-        
         static List<Card> deck = new List<Card>();
-
         static Random random = new Random();
         
         static void Main(string[] args) {
@@ -27,47 +24,56 @@ namespace Blackjack {
             //Initialise game - deal player 2 cards
 
             gameInit(player);
-            DisplayStatus(player);
-
+            DisplayPlayerStatus(player);
             while (currentPlayer) {
-
                 //Prompt hit or stay
                 HitorStay(player);
-                
             }
 
             if (CheckBust(player)) {
-                Console.WriteLine("The dealer has won.");
+                Console.WriteLine("Dealer Wins!");
             }
             else {
-                Dealer(); 
+                DealersTurn(); 
+            }
+        }
+        
+        public static void gameInit(Player player) {
+                    
+                    //initialise new deck
+                    
+                    int count = 0;
+
+                    foreach (Suit val in Enum.GetValues(typeof(Suit))) {
+                        for (int i = 0; i < 13; i++) {
+                            Card myCard = new Card(Suit.Hearts, 1);
+                            myCard.setSuit(val);
+                            myCard.setValue(i+1);
+                            count++;
+                            deck.Add(myCard);
+                        }
+                    }
+                    
+                    //deal 2 cards to the player
+                    dealCard(player);
+                    dealCard(player);
+                    
+                }
+        
+        public static void DisplayPlayerStatus(Player player) {
+            //print individual cards
+            if (CheckBust(player)) {
+                Console.WriteLine("You are currently at Bust!");
+            }
+            else {
+                Console.WriteLine("You are currently at {0}", player.getTotal());
             }
             
-
-            //If stay, dealer's turn begins
-
-            //if hit, add new card to player's hand
-
-            //check if bust
-
-            //if not, print current total and individual cards
-
-            //if bust, dealer wins
-        }
-
-        public static void DisplayStatus(Player player) {
-            //print individual cards
+            Console.Write("with the hand [");
             for (int i = 0; i < player.getCards().Count; i++) {
-                Console.WriteLine(player.getCards()[i].getName() + " of " + player.getCards()[i].getSuit());
+                Console.Write("[{0}, {1}]", player.getCards()[i].getName(),  player.getCards()[i].getSuit());
             }
-                
-            //print total
-            if (CheckBust(player)) {
-                Console.WriteLine("You have bust :(");
-            }
-            else {
-                Console.WriteLine("You are currently at " + player.getCards().Count + " Cards with a total of " + player.getTotal() + " points!");
-            }
+            Console.WriteLine("]\n");
         }
 
         public static void HitorStay(Player player) {
@@ -79,7 +85,7 @@ namespace Blackjack {
                 if (CheckBust(player)) {
                     currentPlayer = false;
                 }
-                DisplayStatus(player);
+                DisplayPlayerStatus(player);
             } else if (response.Equals("stay", StringComparison.CurrentCultureIgnoreCase)) {
                 currentPlayer = false;
                 Console.WriteLine("it is now the dealer's turn.");
@@ -102,7 +108,7 @@ namespace Blackjack {
             int total = player.getTotal();
             for (int i = 0; i < player.getCards().Count; i++) {
                 if (player.getCards()[i].getName().Equals("Ace")) {
-                    if (total <= 11) {
+                    if ((total - player.getCards()[i].getPoints()) < 11) {
                         player.getCards()[i].setPoints(11);
                     }
                     else {
@@ -111,48 +117,36 @@ namespace Blackjack {
                 }
             }
         }
-        public static void gameInit(Player player) {
-            
-            //initialise new deck
-            
-            int count = 0;
-
-            foreach (Suit val in Enum.GetValues(typeof(Suit))) {
-                for (int i = 0; i < 13; i++) {
-                    Card myCard = new Card(Suit.Hearts, 1);
-                    myCard.setSuit(val);
-                    myCard.setValue(i+1);
-                    count++;
-                    deck.Add(myCard);
-                }
-            }
-            
-            //deal 2 cards to the player
-            dealCard(player);
-            dealCard(player);
-            
-        }
 
         public static void dealCard(Player player) {
             int card_id = random.Next(0, deck.Count);
             player.cardAdd(deck[card_id]);
             deck.Remove(deck[card_id]);
             ResolveAce(player);
-            for (int j = 0; j < player.getCards().Count; j++) {
-                //Console.WriteLine(player.getCards()[j].getName() + " of " + player.getCards()[j].getSuit());
-                player.setTotal();
-            }
+            player.setTotal();
+
         }
 
-        public static void Dealer() {
+        public static void DealersTurn() {
             Player dealer = new Player();
             
             Console.WriteLine("\nIt is the dealers turn.\n");
             dealCard(dealer);
             dealCard(dealer);
-            Console.WriteLine("The dealer has the " + dealer.getCards()[0].getName() + " of " + dealer.getCards()[0].getSuit()
+            Console.WriteLine("The dealer is at " + dealer.getTotal() + " with the hand of:\nThe " + dealer.getCards()[0].getName() + " of " + dealer.getCards()[0].getSuit()
                               + " and the " + dealer.getCards()[1].getName() + " of " + dealer.getCards()[1].getSuit());
-            Console.WriteLine("Also, there are " + deck.Count + " cards left in the deck");
+            DealerLogic(dealer);
+        }
+
+        public static void DealerLogic(Player dealer) {
+            while (dealer.getTotal() < 17) {
+                dealCard(dealer);
+                DisplayPlayerStatus(dealer);
+                if (CheckBust(dealer)) {
+                    DisplayPlayerStatus(dealer);
+                    Console.WriteLine("Dealer busts!");
+                }
+            }
         }
         
         //---------------------------------------------------

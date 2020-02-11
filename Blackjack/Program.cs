@@ -16,7 +16,8 @@ namespace Blackjack {
         
         static void Main(string[] args) {
             
-            Player player = new Player();
+            Player player = new Player("player");
+            Player dealer = new Player("dealer");
             
             Console.WriteLine("Welcome to Blackjack!");
             Console.WriteLine("Dealing Hand...");
@@ -24,7 +25,7 @@ namespace Blackjack {
             //Initialise game - deal player 2 cards
 
             gameInit(player);
-            DisplayPlayerStatus(player);
+            DisplayStatus(player);
             while (currentPlayer) {
                 //Prompt hit or stay
                 HitorStay(player);
@@ -34,7 +35,8 @@ namespace Blackjack {
                 Console.WriteLine("Dealer Wins!");
             }
             else {
-                DealersTurn(); 
+                DealersTurn(dealer); 
+                CheckWin(player, dealer);
             }
         }
         
@@ -60,33 +62,41 @@ namespace Blackjack {
                     
                 }
         
-        public static void DisplayPlayerStatus(Player player) {
+        public static void DisplayStatus(Player player) {
             //print individual cards
             if (CheckBust(player)) {
-                Console.WriteLine("You are currently at Bust!");
+                if (player.getName() == "player") {
+                    Console.WriteLine("You are currently at Bust!");
+                }
+                else if (player.getName() == "dealer") {
+                    Console.WriteLine("The dealer is at Bust!");
+                }
             }
             else {
-                Console.WriteLine("You are currently at {0}", player.getTotal());
+                if (player.getName() == "player") {
+                    Console.WriteLine("You are currently at {0}", player.getTotal());
+                } else if (player.getName() == "dealer") {
+                    Console.WriteLine("The dealer is at {0}", player.getTotal());
+                }
             }
-            
             Console.Write("with the hand [");
             for (int i = 0; i < player.getCards().Count; i++) {
                 Console.Write("[{0}, {1}]", player.getCards()[i].getName(),  player.getCards()[i].getSuit());
             }
-            Console.WriteLine("]\n");
+            Console.WriteLine("\n");
         }
 
         public static void HitorStay(Player player) {
-            Console.Write("\nHit or Stay? ");
+            Console.Write("\nHit or Stay? (Hit = 1, Stay = 0) ");
             string response = Console.ReadLine();
 
-            if (response.Equals("hit", StringComparison.OrdinalIgnoreCase)) {
+            if (response.Equals("hit", StringComparison.OrdinalIgnoreCase) || response.Equals("1")) {
                 dealCard(player);
                 if (CheckBust(player)) {
                     currentPlayer = false;
                 }
-                DisplayPlayerStatus(player);
-            } else if (response.Equals("stay", StringComparison.CurrentCultureIgnoreCase)) {
+                DisplayStatus(player);
+            } else if (response.Equals("stay", StringComparison.CurrentCultureIgnoreCase) || response.Equals("0")) {
                 currentPlayer = false;
                 Console.WriteLine("it is now the dealer's turn.");
             } else {
@@ -108,7 +118,7 @@ namespace Blackjack {
             int total = player.getTotal();
             for (int i = 0; i < player.getCards().Count; i++) {
                 if (player.getCards()[i].getName().Equals("Ace")) {
-                    if ((total - player.getCards()[i].getPoints()) < 11) {
+                    if ((total - 11) < 11) {
                         player.getCards()[i].setPoints(11);
                     }
                     else {
@@ -127,25 +137,30 @@ namespace Blackjack {
 
         }
 
-        public static void DealersTurn() {
-            Player dealer = new Player();
-            
-            Console.WriteLine("\nIt is the dealers turn.\n");
+        public static void DealersTurn(Player dealer) {
+
             dealCard(dealer);
             dealCard(dealer);
-            Console.WriteLine("The dealer is at " + dealer.getTotal() + " with the hand of:\nThe " + dealer.getCards()[0].getName() + " of " + dealer.getCards()[0].getSuit()
-                              + " and the " + dealer.getCards()[1].getName() + " of " + dealer.getCards()[1].getSuit());
+            DisplayStatus(dealer);
             DealerLogic(dealer);
         }
 
         public static void DealerLogic(Player dealer) {
             while (dealer.getTotal() < 17) {
                 dealCard(dealer);
-                DisplayPlayerStatus(dealer);
-                if (CheckBust(dealer)) {
-                    DisplayPlayerStatus(dealer);
-                    Console.WriteLine("Dealer busts!");
-                }
+                DisplayStatus(dealer);
+            }
+        }
+
+        public static void CheckWin(Player player, Player dealer) {
+            if (player.getTotal().CompareTo(dealer.getTotal()) < 0) {
+                Console.WriteLine("Dealer Wins!");
+            }
+            else if (player.getTotal().CompareTo(dealer.getTotal()) > 0) {
+                Console.WriteLine("You Win!");
+            }
+            else {
+                Console.WriteLine("It's a tie!");
             }
         }
         
@@ -154,9 +169,13 @@ namespace Blackjack {
         //---------------------------------------------------
 
         public class Player {
-            
+            string name;
             int total;
             List<Card> cards = new List<Card>();
+
+            public Player(string name) {
+                this.name = name;
+            }
 
             public void setTotal() {
                 total = 0;
@@ -175,6 +194,10 @@ namespace Blackjack {
 
             public void cardAdd(Card card) {
                 cards.Add(card);
+            }
+
+            public string getName() {
+                return name;
             }
 
             /*public int calc_value(List<Card> cards) {

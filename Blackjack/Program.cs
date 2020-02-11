@@ -36,6 +36,14 @@ namespace Blackjack {
                 
             }
 
+            if (CheckBust(player)) {
+                Console.WriteLine("The dealer has won.");
+            }
+            else {
+                Dealer(); 
+            }
+            
+
             //If stay, dealer's turn begins
 
             //if hit, add new card to player's hand
@@ -134,6 +142,17 @@ namespace Blackjack {
                 //Console.WriteLine(player.getCards()[j].getName() + " of " + player.getCards()[j].getSuit());
                 player.setTotal();
             }
+        }
+
+        public static void Dealer() {
+            Player dealer = new Player();
+            
+            Console.WriteLine("\nIt is the dealers turn.\n");
+            dealCard(dealer);
+            dealCard(dealer);
+            Console.WriteLine("The dealer has the " + dealer.getCards()[0].getName() + " of " + dealer.getCards()[0].getSuit()
+                              + " and the " + dealer.getCards()[1].getName() + " of " + dealer.getCards()[1].getSuit());
+            Console.WriteLine("Also, there are " + deck.Count + " cards left in the deck");
         }
         
         //---------------------------------------------------

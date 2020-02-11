@@ -54,7 +54,12 @@ namespace Blackjack {
             }
                 
             //print total
-            Console.WriteLine("You are currently at " + player.getCards().Count + " Cards with a total of " + player.getTotal() + " points!");
+            if (CheckBust(player)) {
+                Console.WriteLine("You have bust :(");
+            }
+            else {
+                Console.WriteLine("You are currently at " + player.getCards().Count + " Cards with a total of " + player.getTotal() + " points!");
+            }
         }
 
         public static void HitorStay(Player player) {
@@ -63,6 +68,9 @@ namespace Blackjack {
 
             if (response.Equals("hit", StringComparison.OrdinalIgnoreCase)) {
                 dealCard(player);
+                if (CheckBust(player)) {
+                    currentPlayer = false;
+                }
                 DisplayStatus(player);
             } else if (response.Equals("stay", StringComparison.CurrentCultureIgnoreCase)) {
                 currentPlayer = false;
@@ -70,6 +78,29 @@ namespace Blackjack {
             } else {
                 Console.WriteLine("Please input a valid answer.");
                 HitorStay(player);
+            }
+        }
+
+        public static bool CheckBust(Player player) {
+            if (player.getTotal() > 21) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public static void ResolveAce(Player player) {
+            int total = player.getTotal();
+            for (int i = 0; i < player.getCards().Count; i++) {
+                if (player.getCards()[i].getName().Equals("Ace")) {
+                    if (total <= 11) {
+                        player.getCards()[i].setPoints(11);
+                    }
+                    else {
+                        player.getCards()[i].setPoints(1);
+                    }
+                }
             }
         }
         public static void gameInit(Player player) {
@@ -98,6 +129,7 @@ namespace Blackjack {
             int card_id = random.Next(0, deck.Count);
             player.cardAdd(deck[card_id]);
             deck.Remove(deck[card_id]);
+            ResolveAce(player);
             for (int j = 0; j < player.getCards().Count; j++) {
                 //Console.WriteLine(player.getCards()[j].getName() + " of " + player.getCards()[j].getSuit());
                 player.setTotal();
